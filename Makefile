@@ -2,14 +2,20 @@ CXX=g++
 CXXFLAGS=-Wall -g --std=c++14
 LDFLAGS=-lncurses
 
+OBJS=	src/main.o \
+		src/engine.o \
+		src/snake.o \
+		src/map.o \
+		src/log.o \
+
 all: intomessage nakins
 
 intomessage:	
 	@echo "Initializing compilation..."
 
-nakins: src/main.o src/engine.o src/snake.o src/map.o src/log.o		
+nakins: $(OBJS)
 		@echo "Creating final executable."
-		$(CXX) -o nakins src/main.o src/engine.o src/snake.o src/map.o src/log.o $(LDFLAGS)
+		$(CXX) -o nakins $(OBJS) $(LDFLAGS)
 
 clean:
 	@echo "Cleaning project..."

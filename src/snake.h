@@ -4,10 +4,11 @@
 #include "log.h"
 #include "engine.h"
 
-#include <vector>
+#include <deque>
 #include <ncurses.h>
 
 #define NX_SNAKE_BODY ACS_BOARD 
+#define NX_SNAKE_CLS ' '
 
 #define NX_SNAKE_START_SIZE 5
 #define NX_SNAKE_START_X 5
@@ -17,7 +18,7 @@ typedef struct _STSnakeBody {
     int x; ///< Position in column of snake body node.
     int y; ///< Position in line of snake body node.
     bool isHead;
-    bool isLastRemovedNode;    
+    bool isLastRemovedNode; ///< Mark the node to be deleted in the next render.   
 } STSnakeBody;
 
 class cSnake {
@@ -54,11 +55,14 @@ public:
 
     void move(eNXKeyPressed eNXMovDir);
 
+    void logSnakeNodes();
+
 private:
     bool m_bIsFirstRender;
+    bool m_bWasCalledIncrease;
     int m_iSize;
     int m_iMaxSize;    
-    std::vector<STSnakeBody> m_oVector;    
+    std::deque<STSnakeBody> m_odqSnakeNodes;    
     eNXKeyPressed m_eSnakeDirection;
     STSnakeBody oRemovedSnakeNode;
 

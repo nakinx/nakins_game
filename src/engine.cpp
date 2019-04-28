@@ -26,6 +26,7 @@ void cEngine::initialize(){
     curs_set(0);
     timeout(1); // Set the timeout of getch.
     noecho(); // Don't show characters on the screen when typed.
+    cbreak(); // Take a input one at time;
     keypad(stdscr, true); // Enable arrow keys.
         
     m_poMap.get()->initialize(0);
@@ -36,21 +37,20 @@ void cEngine::loop(){
     eNXKeyPressed oeNXKeyPressed;
 
     m_poMap.get()->render();
-    m_poMap.get()->createSnakeFood();
+    m_poMap.get()->renderSnakeFood();
    
     for (;;) {        
-        m_poSnake.get()->render();
-                
-        if (checkSnakeFoodCollision() == true)   
-            m_poMap.get()->createSnakeFood();          
-
-        refresh();
+        m_poSnake.get()->render();        
+        wrefresh(stdscr);
         
-        std::this_thread::sleep_for(std::chrono::seconds(1));
+        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
         oeNXKeyPressed = captureKey();
 
         m_poSnake.get()->move(oeNXKeyPressed);
+
+        if (checkSnakeFoodCollision() == true) 
+             m_poMap.get()->renderSnakeFood();          
 
         oeNXKeyPressed = eNXKeyPressed::undefined;        
     }
@@ -91,7 +91,7 @@ bool cEngine::checkSnakeFoodCollision() {
         {
         cLog::getInstance().write(eServeriyLevel::Verbose, "Snake collision with food detected.");
 
-        m_poSnake.get()->increaseSize();
+        m_poSnake.get()->increaseSize();        
 
         return (true);
         }

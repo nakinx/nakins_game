@@ -4,7 +4,7 @@
 #include <string>
 #include <fstream>
 
-#define NX_LOG_PATH "nakinx.log"
+#define NX_LOG_PATH "nakins.log"
 
 enum class eServeriyLevel {  
   Debug = 1, ///< Informational events most useful for developers to debug application.  

@@ -31,3 +31,5 @@ nakins
 # Logs
 *.log
 
+# IDE
+.vscode

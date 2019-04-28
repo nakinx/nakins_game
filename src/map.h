@@ -4,7 +4,7 @@
 #include <ncurses.h>
 
 #define NX_WALL ACS_CKBOARD
-#define NX_SNAKE_FOOD ACS_DIAMOND 
+#define NX_SNAKE_FOOD ACS_BOARD 
 
 typedef struct _STMapWall {
 
@@ -37,9 +37,11 @@ public:
 
     void render();
 
-    void createSnakeFood();
+    void renderSnakeFood();
 
     STSnakeFood getSnakeFoodPosition();
+
+    void clearSnakeFoodPosition();
 
 private:
     bool m_bIsDefaultMap;

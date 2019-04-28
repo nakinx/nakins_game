@@ -59,15 +59,21 @@ int cSnake::getMaxSize() {
 
 bool cSnake::increaseSize(const int iSize) {
 
-    STSnakeBody stSnakeBody;
+    logSnakeNodes();
 
-    stSnakeBody.x = m_oVector.front().x;
-    stSnakeBody.y = m_oVector.front().y;
+    STSnakeBody stSnakeBody;    
+
+    stSnakeBody.x = m_odqSnakeNodes.back().x+1;
+    stSnakeBody.y = m_odqSnakeNodes.back().y;
     
-    stSnakeBody.isHead = false;
+    stSnakeBody.isHead = true;
     stSnakeBody.isLastRemovedNode = false;
 
-    m_oVector.push_back(stSnakeBody);
+    m_odqSnakeNodes.back().isHead = false;
+
+    m_odqSnakeNodes.push_back(stSnakeBody);
+
+    logSnakeNodes();
 
     return (setSize(getSize() + iSize));    
 } 
@@ -77,14 +83,19 @@ void cSnake::render() {
     cLog::getInstance().write(eServeriyLevel::Debug, "Rendering snake.");
 
     if (m_bIsFirstRender == true) {
-        for (STSnakeBody oStSnakeBody : m_oVector) {
-            mvaddch(oStSnakeBody.y, oStSnakeBody.x, NX_SNAKE_BODY);
+        for (STSnakeBody oStSnakeBody : m_odqSnakeNodes) {
+            mvwaddch(stdscr, oStSnakeBody.y, oStSnakeBody.x, NX_SNAKE_BODY);
         }
     } else {
-        if (m_oVector.front().isLastRemovedNode == true)        
-            mvaddch(m_oVector.front().y, m_oVector.front().x, ' ');
-            
-        mvaddch(m_oVector.back().y, m_oVector.back().x, NX_SNAKE_BODY);
+        if (m_odqSnakeNodes.front().isLastRemovedNode == true)        
+            mvwaddch(stdscr, m_odqSnakeNodes.front().y, m_odqSnakeNodes.front().x, NX_SNAKE_CLS);
+
+        std::stringstream oLogStr;
+        oLogStr << "y:" << m_odqSnakeNodes.back().y << "/" <<  m_odqSnakeNodes.at(m_odqSnakeNodes.size() - 2).y 
+                << " x:" << m_odqSnakeNodes.back().x << "/" <<  m_odqSnakeNodes.at(m_odqSnakeNodes.size() - 2).x;
+        cLog::getInstance().write(eServeriyLevel::Debug, oLogStr.str());
+
+        mvwaddch(stdscr, m_odqSnakeNodes.back().y, m_odqSnakeNodes.back().x, NX_SNAKE_BODY);
     }
 
     m_bIsFirstRender = false;
@@ -121,7 +132,9 @@ void cSnake::create(const int x,
         else
             stSnakeBody.isHead = false;
 
-        m_oVector.push_back(stSnakeBody);
+        stSnakeBody.isLastRemovedNode = false;
+
+        m_odqSnakeNodes.push_back(stSnakeBody);
     }
 
     m_eSnakeDirection = eNXDirection;
@@ -136,19 +149,19 @@ eNXKeyPressed cSnake::getDirection() {
 }
 
 STSnakeBody cSnake::getHeadPosition() {
-    return (m_oVector.back());
+    return (m_odqSnakeNodes.back());
 }
 
 void cSnake::move(eNXKeyPressed eNXMovDir) {
     if (eNXMovDir == eNXKeyPressed::undefined)
         eNXMovDir = getDirection();
     
-    if (m_oVector.size() > 0) {
+    if (m_odqSnakeNodes.size() > 0) {
         STSnakeBody stSnakeBody;
 
         // Get the actual position of snake head.
-        stSnakeBody.x = m_oVector.back().x;
-        stSnakeBody.y = m_oVector.back().y;
+        stSnakeBody.x = m_odqSnakeNodes.back().x;
+        stSnakeBody.y = m_odqSnakeNodes.back().y;
         
         switch (eNXMovDir) {
             case eNXKeyPressed::left:
@@ -200,17 +213,20 @@ void cSnake::move(eNXKeyPressed eNXMovDir) {
                 break;
         }        
         
-        if (m_oVector.front().isLastRemovedNode == true)
-            m_oVector.erase(m_oVector.begin());            
+        if (m_odqSnakeNodes.front().isLastRemovedNode == true)
+            m_odqSnakeNodes.pop_front();
         
         // Mark that the last node should be delete in the next movement.
-        m_oVector.front().isLastRemovedNode = true;
+        m_odqSnakeNodes.front().isLastRemovedNode = true;
 
-        m_oVector.back().isHead = false;
+        m_odqSnakeNodes.back().isHead = false;
 
         // Put in the body the new head position.
         stSnakeBody.isHead = true;
-        m_oVector.push_back(stSnakeBody);
+
+        stSnakeBody.isLastRemovedNode = false;
+
+        m_odqSnakeNodes.push_back(stSnakeBody);
 
     } else {
         // @TODO throw a error.
@@ -220,5 +236,19 @@ void cSnake::move(eNXKeyPressed eNXMovDir) {
     setDirection(eNXMovDir);
 }
     
+void cSnake::logSnakeNodes(){
+
+    std::stringstream oSsSnakeNodes;
+
+    oSsSnakeNodes << "Printing snake nodes:" << std::endl;
+
+    for (auto node: m_odqSnakeNodes){
+        oSsSnakeNodes << "Node: x[" << node.x << "] y[" << node.y << "] head[" << node.isHead << "] deadnode[" << node.isLastRemovedNode << "]" << std::endl;
+    }
+
+    oSsSnakeNodes << "Print end.";
+
+    cLog::getInstance().write(eServeriyLevel::Debug, oSsSnakeNodes.str());
+}
 
 
