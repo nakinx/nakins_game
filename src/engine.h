@@ -3,8 +3,13 @@
 
 class cMap;
 class cSnake;
+class cTopBar;
+class cGameOver;
 
 #include <memory>
+
+#define NX_MIN_X 90
+#define NX_MIN_Y 22
 
 enum class eNXKeyPressed {
     up = 1,
@@ -29,11 +34,17 @@ public:
 private:
     std::unique_ptr<cMap> m_poMap;
     std::unique_ptr<cSnake> m_poSnake;
+    std::unique_ptr<cTopBar> m_poTopBar;
+    std::unique_ptr<cGameOver> m_poGameOver;
+    unsigned int m_uiSpeed;
+
+    bool checkForCollisions();
+
+    bool checkSnakeBodyCollision();
 
     bool checkSnakeFoodCollision();
 
     eNXKeyPressed captureKey();
-
 };
 
 #endif // ENGINE_H_

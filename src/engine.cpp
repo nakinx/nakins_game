@@ -1,10 +1,12 @@
 #include "engine.h"
 
+#include "nakins.h"
 #include "log.h"
 #include "map.h"
 #include "snake.h"
+#include "topbar.h"
+#include "gameover.h"
 
-#include <ncurses.h>
 #include <thread>
 #include <chrono>
 
@@ -13,7 +15,10 @@
 
 cEngine::cEngine() 
     : m_poMap(new cMap()),
-      m_poSnake(new cSnake()){
+      m_poSnake(new cSnake()),
+      m_poTopBar(new cTopBar()),
+      m_poGameOver(new cGameOver()),
+      m_uiSpeed(1000) {
 }
 
 cEngine::~cEngine(){
@@ -24,36 +29,42 @@ void cEngine::initialize(){
 
     initscr();
     curs_set(0);
-    timeout(1); // Set the timeout of getch.
+    //timeout(1); // Set the timeout of getch.
     noecho(); // Don't show characters on the screen when typed.
     cbreak(); // Take a input one at time;
     keypad(stdscr, true); // Enable arrow keys.
         
     m_poMap.get()->initialize(0);
     m_poSnake.get()->initialize(m_poMap.get()->getEmptySpaceSize());
+    m_poTopBar.get()->initialize();
+    m_poGameOver.get()->initialize();
 }
 
 void cEngine::loop(){
-    eNXKeyPressed oeNXKeyPressed;
+    //eNXKeyPressed oeNXKeyPressed;
 
-    m_poMap.get()->render();
+    m_poMap.get()->render();    
     m_poMap.get()->renderSnakeFood();
+    m_poTopBar.get()->renderRecord();
+
+    m_poGameOver.get()->render();
    
-    for (;;) {        
-        m_poSnake.get()->render();        
-        wrefresh(stdscr);
+    captureKey();
+
+    // for (;;) {        
+    //     m_poSnake.get()->render();                
+    //     wrefresh(stdscr);
         
-        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    //     std::this_thread::sleep_for(std::chrono::milliseconds(m_uiSpeed));
 
-        oeNXKeyPressed = captureKey();
+    //     oeNXKeyPressed = captureKey();
 
-        m_poSnake.get()->move(oeNXKeyPressed);
+    //     m_poSnake.get()->move(oeNXKeyPressed);
 
-        if (checkSnakeFoodCollision() == true) 
-             m_poMap.get()->renderSnakeFood();          
+    //     checkForCollisions();
 
-        oeNXKeyPressed = eNXKeyPressed::undefined;        
-    }
+    //     oeNXKeyPressed = eNXKeyPressed::undefined;        
+    // }
 }
 
 eNXKeyPressed cEngine::captureKey() {
@@ -82,6 +93,30 @@ eNXKeyPressed cEngine::captureKey() {
     }
 }
 
+bool cEngine::checkForCollisions() {
+    if (checkSnakeFoodCollision() == true) {
+        m_poTopBar.get()->renderScore();
+        m_poMap.get()->renderSnakeFood(); 
+    }              
+
+    if (checkSnakeBodyCollision() == true) {
+        return (false);
+    }
+
+    return (true);
+}
+
+bool cEngine::checkSnakeBodyCollision() {
+
+    if (m_poSnake.get()->checkSnakeBodyCollision() == true) {
+
+
+        return (true);
+    }       
+
+    return (false);
+}
+
 bool cEngine::checkSnakeFoodCollision() {
     STSnakeBody stSnakeBody = m_poSnake.get()->getHeadPosition();
     STSnakeFood stSnakeFood = m_poMap.get()->getSnakeFoodPosition();
@@ -91,7 +126,8 @@ bool cEngine::checkSnakeFoodCollision() {
         {
         cLog::getInstance().write(eServeriyLevel::Verbose, "Snake collision with food detected.");
 
-        m_poSnake.get()->increaseSize();        
+        m_poSnake.get()->increaseSize();  
+        m_poTopBar.get()->increaseScore(eScoreType::food, m_uiSpeed);     
 
         return (true);
         }

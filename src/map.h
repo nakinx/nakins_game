@@ -1,25 +1,18 @@
 #ifndef MAP_H_
 #define MAP_H_
 
-#include <ncurses.h>
-
-#define NX_WALL ACS_CKBOARD
-#define NX_SNAKE_FOOD ACS_BOARD 
+#include "nakins.h"
 
 typedef struct _STMapWall {
-
     int x;
     int y;
     int type;
-
 } STMapWall;
 
 typedef struct _STSnakeFood {
-
     int x;
     int y;
     int type;
-
 } STSnakeFood;
 
 class cMap {
@@ -46,6 +39,8 @@ public:
 private:
     bool m_bIsDefaultMap;
     int m_iEmptySpaceSize;    
+    int m_uiX; ///< Columns.
+    int m_uiY; ///< Lines.
     STSnakeFood m_stSnakeFood;
 
     void calculateEmptySpaceSize();

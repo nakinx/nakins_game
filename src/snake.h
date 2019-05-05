@@ -55,6 +55,8 @@ public:
 
     void move(eNXKeyPressed eNXMovDir);
 
+    bool checkSnakeBodyCollision();
+
     void logSnakeNodes();
 
 private:

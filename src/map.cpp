@@ -10,20 +10,30 @@
 
 cMap::cMap() 
     : m_bIsDefaultMap(true),
-      m_iEmptySpaceSize(0) {
+      m_iEmptySpaceSize(0),
+      m_uiX(0),
+      m_uiY(0) {    
 }
 
 cMap::~cMap() {
 }
 
 bool cMap::initialize(const int iChosenMap) {
-    calculateEmptySpaceSize();
+    m_uiX = COLS;    
+    m_uiY = LINES; 
+
+    std::stringstream oSsLog;
+    oSsLog << "Resolution: " << m_uiX << "x" << m_uiY << ".";
+    cLog::getInstance().write(eServeriyLevel::Info, oSsLog.str());
+
+    calculateEmptySpaceSize();    
+
     return (true);
 }
 
 void cMap::calculateEmptySpaceSize() {
     if (m_bIsDefaultMap == true) 
-        m_iEmptySpaceSize = (LINES - 2) * (COLS - 2);
+        m_iEmptySpaceSize = (m_uiY - 2) * (m_uiX - 2);
 }
 
 int cMap::getEmptySpaceSize() {
@@ -38,8 +48,23 @@ bool cMap::load() {
 }
 
 void cMap::render() {
-    if (m_bIsDefaultMap == true)
-        border(NX_WALL, NX_WALL, NX_WALL, NX_WALL, NX_WALL, NX_WALL, NX_WALL, NX_WALL);            
+    cLog::getInstance().write(eServeriyLevel::Info, "Rendering map.");
+
+    // Remove one line at the top to score bar.
+    for (int i = 1; i < (m_uiX - 1); ++i)
+        mvwaddch(stdscr, 1, i, NX_WALL);
+
+    // Remove two lines at the bottom to command.
+    for (int i = 1; i < (m_uiX - 1); ++i)
+        mvwaddch(stdscr, (m_uiY - 2), i, NX_WALL);
+
+    // Remove one line at the top and bottom.
+    for (int i = 1; i < (m_uiY - 1); ++i)
+        mvwaddch(stdscr, i, 1, NX_WALL);
+
+    // Remove one line at the top and bottom.
+    for (int i = 1; i < (m_uiY - 1); ++i)
+        mvwaddch(stdscr, i, (m_uiX - 2), NX_WALL);
 }
 
 bool cMap::checkResolution() {
