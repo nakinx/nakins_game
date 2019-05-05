@@ -1,23 +1,39 @@
+.PHONY := info clean
+
 CXX=g++
 CXXFLAGS=-Wall -g --std=c++14
 LDFLAGS=-lncurses
+MAKEFLAGS+=--no-builtin-rules
 
-OBJS=	src/main.o \
-		src/engine.o \
-		src/snake.o \
-		src/map.o \
-		src/log.o \
+SRCS=$(wildcard src/*.cpp)
+OBJS=$(SRCS:%.cpp=%.o)
 
-all: intomessage nakins
+all: info nakins
 
-intomessage:	
-	@echo "Initializing compilation..."
+info: 
+	@echo "======Compilation Info======"	
+	@echo "Compiler:" $(CXX)
+	@echo "Flags:" $(CXXFLAGS)
+	@echo "Sources:" $(SRCS)
+	@echo "Objects:" $(OBJS)
+	@echo "External Librarys:" $(LDFLAGS)
+	@echo "============================"
 
 nakins: $(OBJS)
-		@echo "Creating final executable."
-		$(CXX) -o nakins $(OBJS) $(LDFLAGS)
+	@echo "======Linking Objects======"
+	$(CXX) $(CXXFLAGS) $(OBJS) -o $@ $(LDFLAGS)
+
+%.o : %.d
+	@echo "====== Creating Object:" $@ "======" 
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) -c $(@:.o=.cpp) -o $@	
+
+%.d :
+	@echo "====== Creating Dependacy:" $@ "======"
+	@$(CXX) $(CXXFLAGS) $(@:.d=.cpp) -MM 
+	$(CXX) $(CXXFLAGS) $(@:.d=.cpp) -MM -MF $@
 
 clean:
-	@echo "Cleaning project..."
-	rm -r src/*.o
-	rm nakins
+	@echo "======Cleaning Project======"
+	-rm -r src/*.o src/*.d
+	-rm -r *.o *.d
+	-rm nakins
