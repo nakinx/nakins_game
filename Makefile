@@ -1,6 +1,10 @@
 .PHONY := info clean
 
-CXX=g++
+# Travis CI.
+ifeq ($(CXX),)
+	CXX=g++
+endif
+
 CXXFLAGS=-Wall -g --std=c++14
 LDFLAGS=-lncurses
 MAKEFLAGS+=--no-builtin-rules
