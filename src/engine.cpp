@@ -14,11 +14,12 @@
 #include <sstream>
 
 cEngine::cEngine() 
-    : m_poMap(new cMap()),
-      m_poSnake(new cSnake()),
-      m_poTopBar(new cTopBar()),
-      m_poGameOver(new cGameOver()),
-      m_uiSpeed(1000) {
+    : m_poMap(std::make_unique<cMap>()),
+      m_poSnake(std::make_unique<cSnake>()),
+      m_poTopBar(std::make_unique<cTopBar>()),
+      m_poGameOver(std::make_unique<cGameOver>()),
+      m_uiSpeed(1000),
+      m_uiUISpeed(1000) {
 }
 
 cEngine::~cEngine(){
@@ -29,7 +30,7 @@ void cEngine::initialize(){
 
     initscr();
     curs_set(0);
-    //timeout(1); // Set the timeout of getch.
+    timeout(1); // Set the timeout of getch.
     noecho(); // Don't show characters on the screen when typed.
     cbreak(); // Take a input one at time;
     keypad(stdscr, true); // Enable arrow keys.
@@ -41,30 +42,27 @@ void cEngine::initialize(){
 }
 
 void cEngine::loop(){
-    //eNXKeyPressed oeNXKeyPressed;
+    eNXKeyPressed oeNXKeyPressed;
 
     m_poMap.get()->render();    
     m_poMap.get()->renderSnakeFood();
     m_poTopBar.get()->renderRecord();
+    m_poTopBar.get()->renderScore();   
 
-    m_poGameOver.get()->render();
-   
-    captureKey();
-
-    // for (;;) {        
-    //     m_poSnake.get()->render();                
-    //     wrefresh(stdscr);
+    for (;;) {        
+        m_poSnake.get()->render();                
+        wrefresh(stdscr);
         
-    //     std::this_thread::sleep_for(std::chrono::milliseconds(m_uiSpeed));
+        std::this_thread::sleep_for(std::chrono::milliseconds(m_uiSpeed));
 
-    //     oeNXKeyPressed = captureKey();
+        oeNXKeyPressed = captureKey();
 
-    //     m_poSnake.get()->move(oeNXKeyPressed);
+        m_poSnake.get()->move(oeNXKeyPressed);
 
-    //     checkForCollisions();
+        checkForCollisions();
 
-    //     oeNXKeyPressed = eNXKeyPressed::undefined;        
-    // }
+        oeNXKeyPressed = eNXKeyPressed::undefined;        
+    }
 }
 
 eNXKeyPressed cEngine::captureKey() {
@@ -88,6 +86,8 @@ eNXKeyPressed cEngine::captureKey() {
             return (eNXKeyPressed::down);
         case KEY_EXIT:
             return (eNXKeyPressed::escape);
+        case NX_KEY_ENTER:
+            return (eNXKeyPressed::enter);
         default: 
             return (eNXKeyPressed::undefined);
     }
@@ -100,17 +100,39 @@ bool cEngine::checkForCollisions() {
     }              
 
     if (checkSnakeBodyCollision() == true) {
+        eNXKeyPressed oeNXKeyPressed;
+
+        m_poGameOver.get()->render();        
+        m_poGameOver.get()->renderGameOverKeyOption();
+
+        for (;;) {
+            cLog::getInstance().write(eServeriyLevel::Debug, "Body collision loop.");               
+
+            oeNXKeyPressed = captureKey();
+
+            if (oeNXKeyPressed != eNXKeyPressed::undefined) {
+
+                if (oeNXKeyPressed == eNXKeyPressed::enter) {
+                    return (false);
+                }
+                else {
+                    m_poGameOver.get()->changeGameOverOption(oeNXKeyPressed);
+                    m_poGameOver.get()->renderGameOverKeyOption();
+                }                
+            }
+
+            oeNXKeyPressed = eNXKeyPressed::undefined;
+
+            std::this_thread::sleep_for(std::chrono::milliseconds(m_uiUISpeed));
+        }
         return (false);
     }
-
     return (true);
 }
 
 bool cEngine::checkSnakeBodyCollision() {
 
     if (m_poSnake.get()->checkSnakeBodyCollision() == true) {
-
-
         return (true);
     }       
 
